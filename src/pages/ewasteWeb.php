@@ -302,7 +302,7 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
         </nav>
     </header>
 
-
+    <!-- Main Content -->
 
     <!-- Home Section -->
 
@@ -466,301 +466,291 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
 
     </section>
 
-
     <!-- Profile Section -->
     <?php if (!isset($_SESSION['user_id'])): ?>
         <section id="loginSection" class="section profile-section">
             <section class="profile-contents">
                 <div class="logIn">
-
                     <h2 id="formTitle">Log in</h2>
                     <p id="formToggleText">
                         New to site? <a href="#" id="toggleForm">Sign up</a>
                     </p>
                 </div>
-            <?php endif; ?>
-            <div class="continueAcc">
-                <!-- PHP Check for Form Handling -->
-                <?php
-                // Check if there's an error to show
-                if (isset($_GET['error'])) {
-                    echo "<p style='color: red;'>" . htmlspecialchars($_GET['error']) . "</p>";
-                }
-                ?>
+                <div class="continueAcc">
+                    <!-- PHP Check for Form Handling -->
+                    <?php
+                    // Check if there's an error to show
+                    if (isset($_GET['error'])) {
+                        echo "<p style='color: red;'>" . htmlspecialchars($_GET['error']) . "</p>";
+                    }
+                    ?>
 
-                <!-- Log In Form -->
-                <div id="loginForm">
-                    <form action="login.php" method="POST">
-                        <input type="hidden" name="signin" value="1">
-                        <ul>
-                            <li>
-                                <label>Email:</label>
-                                <input type="email" id="login-email" name="email" placeholder="Enter your email" required>
-                            </li>
-                            <li>
-                                <label>Password:</label>
-                                <div class="password-field">
-                                    <input type="password" id="login-password" name="password" placeholder="Enter your password" required>
-                                    <button type="button" class="toggle-password" data-target="login-password">
-                                        <i class="far fa-eye-slash"></i>
-                                    </button>
-                                </div>
-                            </li>
-                            <li>
-                                <button type="submit" class="btn">Log in</button>
-                            </li>
-                        </ul>
-                    </form>
-                </div>
+                    <!-- Log In Form -->
+                    <div id="loginForm">
+                        <form action="login.php" method="POST">
+                            <input type="hidden" name="signin" value="1">
+                            <ul>
+                                <li>
+                                    <label>Email:</label>
+                                    <input type="email" id="login-email" name="email" placeholder="Enter your email" required>
+                                </li>
+                                <li>
+                                    <label>Password:</label>
+                                    <div class="password-field">
+                                        <input type="password" id="login-password" name="password" placeholder="Enter your password" required>
+                                        <button type="button" class="toggle-password" data-target="login-password">
+                                            <i class="far fa-eye-slash"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                                <li>
+                                    <button type="submit" class="btn">Log in</button>
+                                </li>
+                            </ul>
+                        </form>
+                    </div>
 
-                <!-- Replace your existing signup form with this improved version -->
-                <div id="signupForm" class="hidden">
-                    <form action="signup.php" method="POST">
-                        <input type="hidden" name="signup" value="1">
-                        <ul>
-                            <li>
-                                <label>Name:</label>
-                                <input type="text" id="full_name" name="full_name" placeholder="Enter your name" required>
-                            </li>
-                            <li>
-                                <label>Email:</label>
-                                <input type="email" id="signup-email" name="email" placeholder="Enter your email" required>
-                            </li>
-                            <li>
-                                <label>Password:</label>
-                                <div class="password-field">
-                                    <input type="password" id="signup-password" name="password" placeholder="Enter your password" required>
-                                    <button type="button" class="toggle-password" data-target="signup-password">
-                                        <i class="far fa-eye-slash"></i>
-                                    </button>
-                                </div>
-                                <div class="password-requirements">
-                                    <p>Password requirements:</p>
-                                    <ul class="requirements-list">
-                                        <li id="length" class="invalid"><i class="fas fa-times-circle"></i>At least 8 characters</li>
-                                        <li id="uppercase" class="invalid"><i class="fas fa-times-circle"></i>At least one uppercase letter</li>
-                                        <li id="lowercase" class="invalid"><i class="fas fa-times-circle"></i>At least one lowercase letter</li>
-                                        <li id="number" class="invalid"><i class="fas fa-times-circle"></i>At least one number</li>
-                                    </ul>
-                                </div>
-                            </li>
-                            <li>
-                                <label>Confirm Password:</label>
-                                <div class="password-field">
-                                    <input type="password" id="confirm-password" name="confirm_password" placeholder="Re-enter your password" required>
-                                    <button type="button" class="toggle-password" data-target="confirm-password">
-                                        <i class="far fa-eye-slash"></i>
-                                    </button>
-                                </div>
-                                <p id="match-status" class="password-requirements"></p>
-                            </li>
-                            <li>
-                                <button type="submit" class="btn" id="signup-btn" disabled>Sign up</button>
-                            </li>
-                        </ul>
-                    </form>
+                    <!-- Signup Form -->
+                    <div id="signupForm" class="hidden">
+                        <form action="signup.php" method="POST">
+                            <input type="hidden" name="signup" value="1">
+                            <ul>
+                                <li>
+                                    <label>Name:</label>
+                                    <input type="text" id="full_name" name="full_name" placeholder="Enter your name" required>
+                                </li>
+                                <li>
+                                    <label>Email:</label>
+                                    <input type="email" id="signup-email" name="email" placeholder="Enter your email" required>
+                                </li>
+                                <li>
+                                    <label>Password:</label>
+                                    <div class="password-field">
+                                        <input type="password" id="signup-password" name="password" placeholder="Enter your password" required>
+                                        <button type="button" class="toggle-password" data-target="signup-password">
+                                            <i class="far fa-eye-slash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="password-requirements">
+                                        <p>Password requirements:</p>
+                                        <ul class="requirements-list">
+                                            <li id="length" class="invalid"><i class="fas fa-times-circle"></i>At least 8 characters</li>
+                                            <li id="uppercase" class="invalid"><i class="fas fa-times-circle"></i>At least one uppercase letter</li>
+                                            <li id="lowercase" class="invalid"><i class="fas fa-times-circle"></i>At least one lowercase letter</li>
+                                            <li id="number" class="invalid"><i class="fas fa-times-circle"></i>At least one number</li>
+                                        </ul>
+                                    </div>
+                                </li>
+                                <li>
+                                    <label>Confirm Password:</label>
+                                    <div class="password-field">
+                                        <input type="password" id="confirm-password" name="confirm_password" placeholder="Re-enter your password" required>
+                                        <button type="button" class="toggle-password" data-target="confirm-password">
+                                            <i class="far fa-eye-slash"></i>
+                                        </button>
+                                    </div>
+                                    <p id="match-status" class="password-requirements"></p>
+                                </li>
+                                <li>
+                                    <button type="submit" class="btn" id="signup-btn" disabled>Sign up</button>
+                                </li>
+                            </ul>
+                        </form>
+                    </div>
                 </div>
             </section>
-
-            <!-- Display you are logged in-->
-            <div class="profile-info <?php echo isset($_SESSION['user_id']) ? '' : 'hidden'; ?>">
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <h2>Welcome, <span id="userName"><?php echo htmlspecialchars($_SESSION['full_name']); ?></span></h2>
-                    <p>Your profile information will be displayed here.</p>
-                    <button id="logoutBtn" class="btn" onclick="window.location.href='logout.php'">Log out</button>
-                <?php else: ?>
-                    <a href="login.php">Login</a> | <a href="signup.php">Sign Up</a>
-                <?php endif; ?>
-            </div>
         </section>
+    <?php else: ?>
 
-        <!-- Back to Top Button -->
-        <button id="upButton" title="Go to top">
-            <i class="fa fa-arrow-up"></i>
-        </button>
+    <?php endif; ?>
 
-        <!-- Footer -->
-        <footer>
-            <p>&copy; 2024 EWastePH. All rights reserved. </p>
-            <div class="footer-links">
-                <a href="#">Privacy Policy </a>
-                <a href="#">Terms of Service</a>
-            </div>
-            <div class="footer-social">
-                <a href="https://www.facebook.com/yourpage" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                <a href="https://twitter.com/yourprofile" target="_blank"><i class="fab fa-twitter"></i></a>
-                <a href="https://www.instagram.com/yourprofile" target="_blank"><i class="fab fa-instagram"></i></a>
-            </div>
-        </footer>
+    <!-- Back to Top Button -->
+    <button id="upButton" title="Go to top">
+        <i class="fa fa-arrow-up"></i>
+    </button>
 
-        <script>
-            // script for login
-            const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 EWastePH. All rights reserved. </p>
+        <div class="footer-links">
+            <a href="#">Privacy Policy </a>
+            <a href="#">Terms of Service</a>
+        </div>
+        <div class="footer-social">
+            <a href="https://www.facebook.com/yourpage" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://twitter.com/yourprofile" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://www.instagram.com/yourprofile" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
 
-            function handleAction(action) {
-                if (isLoggedIn) {
+    <script>
+        // script for login
+        const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
 
-                    if (action === 'buy') {
-                        window.location.href = "ewasteShop.php";
-                    } else if (action === 'sell') {
-                        window.location.href = "sell.php";
+        function handleAction(action) {
+            if (isLoggedIn) {
+
+                if (action === 'buy') {
+                    window.location.href = "ewasteShop.php";
+                } else if (action === 'sell') {
+                    window.location.href = "sell.php";
+                }
+            } else {
+
+                document.getElementById("loginSection").scrollIntoView({
+                    behavior: "smooth"
+                });
+            }
+        }
+
+        // Login popup 
+        document.addEventListener('DOMContentLoaded', function() {
+            const justLoggedIn = <?php echo $justLoggedIn ? 'true' : 'false'; ?>;
+            const loginPopup = document.getElementById('loginPopup');
+
+            if (justLoggedIn && loginPopup) {
+
+                setTimeout(function() {
+                    loginPopup.classList.add('show');
+                }, 250);
+
+                const closeBtn = loginPopup.querySelector('.login-popup-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        loginPopup.classList.remove('show');
+                    });
+                }
+
+                const continueBtn = loginPopup.querySelector('.login-popup-button');
+                if (continueBtn) {
+                    continueBtn.addEventListener('click', function() {
+                        loginPopup.classList.remove('show');
+                    });
+                }
+
+                loginPopup.addEventListener('click', function(e) {
+                    if (e.target === loginPopup) {
+                        loginPopup.classList.remove('show');
+                    }
+                });
+            }
+        });
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toggle-password').forEach(function(toggle) {
+                toggle.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    const icon = this.querySelector('i');
+
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    }
+                });
+            });
+
+
+            const passwordInput = document.getElementById('signup-password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            const signupBtn = document.getElementById('signup-btn');
+            const matchStatus = document.getElementById('match-status');
+
+            function validatePassword() {
+                const password = passwordInput.value;
+                let valid = true;
+
+                // Check length
+                const lengthElement = document.getElementById('length');
+                if (password.length >= 8) {
+                    lengthElement.className = 'valid';
+                    lengthElement.querySelector('i').className = 'fas fa-check-circle';
+                } else {
+                    lengthElement.className = 'invalid';
+                    lengthElement.querySelector('i').className = 'fas fa-times-circle';
+                    valid = false;
+                }
+
+                // Check uppercase
+                const uppercaseElement = document.getElementById('uppercase');
+                if (/[A-Z]/.test(password)) {
+                    uppercaseElement.className = 'valid';
+                    uppercaseElement.querySelector('i').className = 'fas fa-check-circle';
+                } else {
+                    uppercaseElement.className = 'invalid';
+                    uppercaseElement.querySelector('i').className = 'fas fa-times-circle';
+                    valid = false;
+                }
+
+                // Check lowercase
+                const lowercaseElement = document.getElementById('lowercase');
+                if (/[a-z]/.test(password)) {
+                    lowercaseElement.className = 'valid';
+                    lowercaseElement.querySelector('i').className = 'fas fa-check-circle';
+                } else {
+                    lowercaseElement.className = 'invalid';
+                    lowercaseElement.querySelector('i').className = 'fas fa-times-circle';
+                    valid = false;
+                }
+
+                // Check number
+                const numberElement = document.getElementById('number');
+                if (/[0-9]/.test(password)) {
+                    numberElement.className = 'valid';
+                    numberElement.querySelector('i').className = 'fas fa-check-circle';
+                } else {
+                    numberElement.className = 'invalid';
+                    numberElement.querySelector('i').className = 'fas fa-times-circle';
+                    valid = false;
+                }
+
+                // Check if passwords match
+                if (password && confirmPasswordInput.value) {
+                    if (password === confirmPasswordInput.value) {
+                        matchStatus.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match!';
+                        matchStatus.style.color = "#4caf50";
+                    } else {
+                        matchStatus.innerHTML = '<i class="fas fa-times-circle"></i> Passwords do not match!';
+                        matchStatus.style.color = "#f44336";
+                        valid = false;
                     }
                 } else {
-
-                    document.getElementById("loginSection").scrollIntoView({
-                        behavior: "smooth"
-                    });
+                    matchStatus.textContent = "";
                 }
+
+                signupBtn.disabled = !valid || !confirmPasswordInput.value || password !== confirmPasswordInput.value;
             }
 
-            // Login popup 
-            document.addEventListener('DOMContentLoaded', function() {
-                const justLoggedIn = <?php echo $justLoggedIn ? 'true' : 'false'; ?>;
-                const loginPopup = document.getElementById('loginPopup');
+            if (passwordInput) {
+                passwordInput.addEventListener('input', validatePassword);
+            }
+            if (confirmPasswordInput) {
+                confirmPasswordInput.addEventListener('input', validatePassword);
+            }
 
-                if (justLoggedIn && loginPopup) {
-
-                    setTimeout(function() {
-                        loginPopup.classList.add('show');
-                    }, 250);
-
-                    const closeBtn = loginPopup.querySelector('.login-popup-close');
-                    if (closeBtn) {
-                        closeBtn.addEventListener('click', function() {
-                            loginPopup.classList.remove('show');
-                        });
-                    }
-
-                    const continueBtn = loginPopup.querySelector('.login-popup-button');
-                    if (continueBtn) {
-                        continueBtn.addEventListener('click', function() {
-                            loginPopup.classList.remove('show');
-                        });
-                    }
-
-                    loginPopup.addEventListener('click', function(e) {
-                        if (e.target === loginPopup) {
-                            loginPopup.classList.remove('show');
-                        }
-                    });
-                }
-            });
-
-
-            document.addEventListener('DOMContentLoaded', function() {
-                //password eye
-                document.querySelectorAll('.toggle-password').forEach(function(toggle) {
-                    toggle.addEventListener('click', function() {
-                        const targetId = this.getAttribute('data-target');
-                        const input = document.getElementById(targetId);
-                        const icon = this.querySelector('i');
-
-                        if (input.type === 'password') {
-                            input.type = 'text';
-                            icon.classList.remove('fa-eye-slash');
-                            icon.classList.add('fa-eye');
-                        } else {
-                            input.type = 'password';
-                            icon.classList.remove('fa-eye');
-                            icon.classList.add('fa-eye-slash');
-                        }
-                    });
-                });
-
-                const passwordInput = document.getElementById('signup-password');
-                const confirmPasswordInput = document.getElementById('confirm-password');
-                const signupBtn = document.getElementById('signup-btn');
-                const matchStatus = document.getElementById('match-status');
-
-                function validatePassword() {
+            const signupForm = document.querySelector('#signupForm form');
+            if (signupForm) {
+                signupForm.addEventListener('submit', function(event) {
                     const password = passwordInput.value;
-                    let valid = true;
 
-                    // Check length
-                    const lengthElement = document.getElementById('length');
-                    if (password.length >= 8) {
-                        lengthElement.className = 'valid';
-                        lengthElement.querySelector('i').className = 'fas fa-check-circle';
-                    } else {
-                        lengthElement.className = 'invalid';
-                        lengthElement.querySelector('i').className = 'fas fa-times-circle';
-                        valid = false;
+                    if (password.length < 8 || !(/[A-Z]/.test(password)) ||
+                        !(/[a-z]/.test(password)) || !(/[0-9]/.test(password))) {
+                        alert('Please ensure your password meets all requirements');
+                        event.preventDefault();
+                    } else if (password !== confirmPasswordInput.value) {
+                        alert('Password and confirmation do not match');
+                        event.preventDefault();
                     }
-
-                    // Check uppercase
-                    const uppercaseElement = document.getElementById('uppercase');
-                    if (/[A-Z]/.test(password)) {
-                        uppercaseElement.className = 'valid';
-                        uppercaseElement.querySelector('i').className = 'fas fa-check-circle';
-                    } else {
-                        uppercaseElement.className = 'invalid';
-                        uppercaseElement.querySelector('i').className = 'fas fa-times-circle';
-                        valid = false;
-                    }
-
-                    // Check lowercase
-                    const lowercaseElement = document.getElementById('lowercase');
-                    if (/[a-z]/.test(password)) {
-                        lowercaseElement.className = 'valid';
-                        lowercaseElement.querySelector('i').className = 'fas fa-check-circle';
-                    } else {
-                        lowercaseElement.className = 'invalid';
-                        lowercaseElement.querySelector('i').className = 'fas fa-times-circle';
-                        valid = false;
-                    }
-
-                    // Check number
-                    const numberElement = document.getElementById('number');
-                    if (/[0-9]/.test(password)) {
-                        numberElement.className = 'valid';
-                        numberElement.querySelector('i').className = 'fas fa-check-circle';
-                    } else {
-                        numberElement.className = 'invalid';
-                        numberElement.querySelector('i').className = 'fas fa-times-circle';
-                        valid = false;
-                    }
-
-                    // Check if passwords match
-                    if (password && confirmPasswordInput.value) {
-                        if (password === confirmPasswordInput.value) {
-                            matchStatus.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match!';
-                            matchStatus.style.color = "#4caf50";
-                        } else {
-                            matchStatus.innerHTML = '<i class="fas fa-times-circle"></i> Passwords do not match!';
-                            matchStatus.style.color = "#f44336";
-                            valid = false;
-                        }
-                    } else {
-                        matchStatus.textContent = "";
-                    }
-
-                    signupBtn.disabled = !valid || !confirmPasswordInput.value || password !== confirmPasswordInput.value;
-                }
-
-                if (passwordInput) {
-                    passwordInput.addEventListener('input', validatePassword);
-                }
-                if (confirmPasswordInput) {
-                    confirmPasswordInput.addEventListener('input', validatePassword);
-                }
-
-                const signupForm = document.querySelector('#signupForm form');
-                if (signupForm) {
-                    signupForm.addEventListener('submit', function(event) {
-                        const password = passwordInput.value;
-
-                        if (password.length < 8 || !(/[A-Z]/.test(password)) ||
-                            !(/[a-z]/.test(password)) || !(/[0-9]/.test(password))) {
-                            alert('Please ensure your password meets all requirements');
-                            event.preventDefault();
-                        } else if (password !== confirmPasswordInput.value) {
-                            alert('Password and confirmation do not match');
-                            event.preventDefault();
-                        }
-                    });
-                }
-            });
-        </script>
+                });
+            }
+        });
+    </script>
 
 
 </body>
