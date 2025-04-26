@@ -477,9 +477,7 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                     </p>
                 </div>
                 <div class="continueAcc">
-                    <!-- PHP Check for Form Handling -->
                     <?php
-                    // Check if there's an error to show
                     if (isset($_GET['error'])) {
                         echo "<p style='color: red;'>" . htmlspecialchars($_GET['error']) . "</p>";
                     }
