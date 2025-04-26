@@ -29,15 +29,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("isssssssss", $user_id, $full_name, $email, $phone_number, $street, $city, $province, $zipcode, $pfp, $payment_method);
 
-    if ($stmt->execute()) {
-        echo "<div class='registration-success-container'>
-                <div class='registration-success-container1'>
-                    <h2 class='success-message'>Profile completed successfully!</h2> 
-                    <a href='userdash.php'>Visit your Profile!</a>
-                </div>
-              </div>";
+    if ($result->num_rows == 1) {
+        $row = $result->fetch_assoc();
+        if (password_verify($password, $row['password'])) {
+            // Set session variables
+            $_SESSION['user_id'] = $row['user_id'];
+            $_SESSION['full_name'] = $row['full_name'];
+            
+            $_SESSION['just_logged_in'] = true;
+
+            header("Location: ewasteWeb.php");
+            exit();
+        } else {
+            echo "Incorrect password!";
+        }
     } else {
-        echo "<p style='color:red;'>Error: " . $stmt->error . "</p>";
+        echo "User not found!";
     }
 }
 ?>
