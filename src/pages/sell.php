@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_product'])) {
         $image_path = $current_product['product_image']; 
         
         if(isset($_FILES['edit_product_image']) && $_FILES['edit_product_image']['error'] === 0) {
-            $upload_dir = '../uploads/';
+            $upload_dir = '../uploads/listings';
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
@@ -130,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['create'])) {
     } else {
 
         if(isset($_FILES['product_image']) && $_FILES['product_image']['error'] === 0) {
-            $upload_dir = '../uploads/';
+            $upload_dir = '../uploads/listings';
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
