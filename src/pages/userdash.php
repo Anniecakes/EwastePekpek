@@ -13,13 +13,13 @@ if ($conn->connect_error) {
 
 $user_id = $_SESSION['user_id'];
 
-$profileCheckStmt = $conn->prepare("SELECT profile_complete FROM users WHERE user_id = ?");
+$profileCheckStmt = $conn->prepare("SELECT profile_completed FROM users WHERE user_id = ?");
 $profileCheckStmt->bind_param("i", $user_id);
 $profileCheckStmt->execute();
 $profileResult = $profileCheckStmt->get_result();
 $profileData = $profileResult->fetch_assoc();
 
-if (!isset($profileData['profile_complete']) || $profileData['profile_complete'] != 1) {
+if (!isset($profileData['profile_completed']) || $profileData['profile_completed'] != 1) {
     header("Location: predashboard.php");
     exit();
 }

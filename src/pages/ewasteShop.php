@@ -20,6 +20,7 @@ if ($logged_in) {
         $profile_data = $profile_result->fetch_assoc();
         $profile_completed = $profile_data['profile_completed'];
         
+
         if (!$profile_completed) {
             header("Location: predashboard.php");
             exit;

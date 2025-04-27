@@ -11,7 +11,7 @@ $user_id = $_SESSION['user_id'];
 $profile_completed = false;
 $message = "";
 
-$userStmt = $conn->prepare("SELECT u.email, u.profile_complete FROM users u WHERE u.user_id = ?");
+$userStmt = $conn->prepare("SELECT u.email, u.profile_completed FROM users u WHERE u.user_id = ?");
 $userStmt->bind_param("i", $user_id);
 $userStmt->execute();
 $userResult = $userStmt->get_result();
@@ -20,7 +20,7 @@ if ($userResult->num_rows > 0) {
   $userData = $userResult->fetch_assoc();
   $default_email = $userData['email'];
 
-  if (isset($userData['profile_complete']) && $userData['profile_complete'] == 1) {
+  if (isset($userData['profile_completed']) && $userData['profile_completed'] == 1) {
     header("Location: userdash.php");
     exit();
   }
@@ -97,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $profile_completed = true;
       $message = "Profile updated successfully!";
   
-      $updateProfileStatus = $conn->prepare("UPDATE users SET profile_complete = 1 WHERE user_id = ?");
+      $updateProfileStatus = $conn->prepare("UPDATE users SET profile_completed = 1 WHERE user_id = ?");
       $updateProfileStatus->bind_param("i", $user_id);
       $updateProfileStatus->execute();
   
@@ -150,7 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $message = "Profile completed successfully!";
 
 
-      $updateProfileStatus = $conn->prepare("UPDATE users SET profile_complete = 1 WHERE user_id = ?");
+      $updateProfileStatus = $conn->prepare("UPDATE users SET profile_completed = 1 WHERE user_id = ?");
       $updateProfileStatus->bind_param("i", $user_id);
       $updateProfileStatus->execute();
 
