@@ -11,22 +11,53 @@ $user_id = $_SESSION['user_id'];
 $profile_completed = false;
 $message = "";
 
-$default_name = isset($_SESSION['temp_name']) ? $_SESSION['temp_name'] : '';
-$default_email = isset($_SESSION['temp_email']) ? $_SESSION['temp_email'] : '';
+$userStmt = $conn->prepare("SELECT u.email, u.profile_complete FROM users u WHERE u.user_id = ?");
+$userStmt->bind_param("i", $user_id);
+$userStmt->execute();
+$userResult = $userStmt->get_result();
 
-unset($_SESSION['temp_name']);
-unset($_SESSION['temp_email']);
+if ($userResult->num_rows > 0) {
+  $userData = $userResult->fetch_assoc();
+  $default_email = $userData['email'];
+
+  if (isset($userData['profile_complete']) && $userData['profile_complete'] == 1) {
+    header("Location: userdash.php");
+    exit();
+  }
+} else {
+  $default_email = '';
+}
+
+// Check if user details already exist
+$detailStmt = $conn->prepare("SELECT * FROM user_details WHERE user_id = ?");
+$detailStmt->bind_param("i", $user_id);
+$detailStmt->execute();
+$detailResult = $detailStmt->get_result();
+$user_details = null;
+
+if ($detailResult->num_rows > 0) {
+  $user_details = $detailResult->fetch_assoc();
+  $default_name = $user_details['full_name'];
+} else {
+
+  $nameStmt = $conn->prepare("SELECT full_name FROM users WHERE user_id = ?");
+  $nameStmt->bind_param("i", $user_id);
+  $nameStmt->execute();
+  $nameResult = $nameStmt->get_result();
+  $nameData = $nameResult->fetch_assoc();
+  $default_name = $nameData['full_name'];
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
   $full_name = $_POST['full_name'];
-  $email = $_POST['email'];
+
   $phone_number = $_POST['phone_number'];
   $street = $_POST['street'];
   $city = $_POST['city'];
   $province = $_POST['province'];
   $zipcode = $_POST['zipcode'];
   $payment_method = $_POST['payment_method'];
-
 
   $pfp = null;
   if (isset($_FILES['pfp']) && $_FILES['pfp']['error'] == UPLOAD_ERR_OK) {
@@ -49,86 +80,91 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $result = $checkStmt->get_result();
 
   if ($result->num_rows > 0) {
-    $updateStmt = $conn->prepare("UPDATE user_details SET full_name = ?, email = ?, phone_number = ?, 
-                                      street = ?, city = ?, province = ?, zipcode = ?, payment_method = ? 
-                                      " . ($pfp ? ", pfp = ?" : "") . " WHERE user_id = ?");
 
     if ($pfp) {
-      $updateStmt->bind_param(
-        "sssssssssi",
-        $full_name,
-        $email,
-        $phone_number,
-        $street,
-        $city,
-        $province,
-        $zipcode,
-        $payment_method,
-        $pfp,
-        $user_id
-      );
+      $updateStmt = $conn->prepare("UPDATE user_details SET full_name = ?, phone_number = ?, 
+                                  street = ?, city = ?, province = ?, zipcode = ?, payment_method = ?, pfp = ? 
+                                  WHERE user_id = ?");
+      $updateStmt->bind_param("ssssssssi", $full_name, $phone_number, $street, $city, $province, $zipcode, $payment_method, $pfp, $user_id);
     } else {
-      $updateStmt->bind_param(
-        "ssssssssi",
-        $full_name,
-        $email,
-        $phone_number,
-        $street,
-        $city,
-        $province,
-        $zipcode,
-        $payment_method,
-        $user_id
-      );
+      $updateStmt = $conn->prepare("UPDATE user_details SET full_name = ?, phone_number = ?, 
+                                  street = ?, city = ?, province = ?, zipcode = ?, payment_method = ? 
+                                  WHERE user_id = ?");
+      $updateStmt->bind_param("sssssssi", $full_name, $phone_number, $street, $city, $province, $zipcode, $payment_method, $user_id);
     }
-
+  
     if ($updateStmt->execute()) {
       $profile_completed = true;
       $message = "Profile updated successfully!";
+  
+      $updateProfileStatus = $conn->prepare("UPDATE users SET profile_complete = 1 WHERE user_id = ?");
+      $updateProfileStatus->bind_param("i", $user_id);
+      $updateProfileStatus->execute();
+  
+      $_SESSION['profile_success'] = true;
+      $_SESSION['profile_message'] = $message;
+      header("Location: userdash.php");
+      exit();
     } else {
       $message = "Error updating profile: " . $updateStmt->error;
     }
   } else {
-    $insertStmt = $conn->prepare("INSERT INTO user_details (user_id, full_name, email, phone_number, 
-                                     street, city, province, zipcode, pfp, payment_method) 
-                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $insertStmt->bind_param(
-      "isssssssss",
-      $user_id,
-      $full_name,
-      $email,
-      $phone_number,
-      $street,
-      $city,
-      $province,
-      $zipcode,
-      $pfp,
-      $payment_method
-    );
+
+    $insertStmt = $conn->prepare("INSERT INTO user_details (user_id, full_name, phone_number, 
+                               street, city, province, zipcode, pfp, payment_method) 
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    
+
+    if ($pfp) {
+      $insertStmt->bind_param(
+        "issssssss",
+        $user_id,
+        $full_name,
+        $phone_number,
+        $street,
+        $city,
+        $province,
+        $zipcode,
+        $pfp,
+        $payment_method
+      );
+    } else {
+
+      $emptyPfp = "";
+      $insertStmt->bind_param(
+        "issssssss",
+        $user_id,
+        $full_name,
+        $phone_number,
+        $street,
+        $city,
+        $province,
+        $zipcode,
+        $emptyPfp,
+        $payment_method
+      );
+    }
 
     if ($insertStmt->execute()) {
       $profile_completed = true;
       $message = "Profile completed successfully!";
+
+
+      $updateProfileStatus = $conn->prepare("UPDATE users SET profile_complete = 1 WHERE user_id = ?");
+      $updateProfileStatus->bind_param("i", $user_id);
+      $updateProfileStatus->execute();
+
+   
+      $_SESSION['profile_success'] = true;
+      $_SESSION['profile_message'] = $message;
+      header("Location: userdash.php");
+      exit();
     } else {
       $message = "Error: " . $insertStmt->error;
     }
   }
 }
 
-$stmt = $conn->prepare("SELECT * FROM user_details WHERE user_id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$user_details = null;
-if ($result->num_rows > 0) {
-  $user_details = $result->fetch_assoc();
-}
-
-if ($user_details && $_SERVER["REQUEST_METHOD"] != "POST") {
-  header("Location: userdash.php");
-  exit();
-}
 ?>
 
 <!DOCTYPE html>
@@ -176,6 +212,14 @@ if ($user_details && $_SERVER["REQUEST_METHOD"] != "POST") {
       margin-top: 10px;
       font-weight: bold;
     }
+
+    /* Style for disabled/read-only inputs */
+    input[readonly] {
+      background-color: #f0f0f0;
+      cursor: not-allowed;
+      color: #666;
+      border: 1px solid #ddd;
+    }
   </style>
 </head>
 
@@ -183,8 +227,11 @@ if ($user_details && $_SERVER["REQUEST_METHOD"] != "POST") {
   <?php if ($profile_completed): ?>
     <div class='registration-success-container'>
       <div class='registration-success-container1'>
-        <h2 class='success-message'><?php echo $message; ?></h2>
-        <a href='userdash.php'>Visit your Profile!</a>
+        <div class='success-message'>
+          <h2>Profile Updated Successfully!</h2>
+          <p>Your profile has been updated and you can now continue to your dashboard.</p>
+        </div>
+        <a href='userdash.php'>Go to Dashboard</a>
       </div>
     </div>
   <?php else: ?>
@@ -193,101 +240,101 @@ if ($user_details && $_SERVER["REQUEST_METHOD"] != "POST") {
         <div class="modal-header">
           <h2 class="modal-title">Complete Your Profile</h2>
           <div class="close-button">
-            <a href="userdash.php"><button type="button">X</button></a>
+            <button type="button" onclick="alert('Please complete your profile to continue');">X</button>
+          </div>
+        </div>
+      </div>
+
+      <?php if (!empty($message)): ?>
+        <div class="alert <?php echo strpos($message, 'Error') !== false ? 'alert-danger' : 'alert-success'; ?>">
+          <?php echo $message; ?>
+        </div>
+      <?php endif; ?>
+
+      <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data">
+        <div class="modal-body">
+          <p class="instruction-text">Please complete your profile information to continue</p>
+
+          <!-- Full Name - Editable -->
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" name="full_name" id="full_name" class="form-control"
+              value="<?php echo htmlspecialchars($default_name); ?>" required>
+          </div>
+
+          <!-- Email Address - Read Only -->
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" id="email" class="form-control"
+              value="<?php echo htmlspecialchars($default_email); ?>" readonly>
+            <small class="form-text text-muted">Email cannot be changed</small>
+            <span class="verified-badge">(verified)</span>
+            <!-- Note: removed the name attribute so it won't be submitted -->
+          </div>
+
+          <!-- Phone Number -->
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" name="phone_number" class="form-control"
+              placeholder="Enter your phone number" required
+              value="<?php echo isset($user_details['phone_number']) ? htmlspecialchars($user_details['phone_number']) : ''; ?>">
+          </div>
+
+          <!-- Shipping Address -->
+          <div class="form-group">
+            <label class="form-label">Street</label>
+            <input type="text" name="street" class="form-control"
+              placeholder="Enter your street" required
+              value="<?php echo isset($user_details['street']) ? htmlspecialchars($user_details['street']) : ''; ?>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <input type="text" name="city" class="form-control"
+              placeholder="Enter your city" required
+              value="<?php echo isset($user_details['city']) ? htmlspecialchars($user_details['city']) : ''; ?>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Province</label>
+            <input type="text" name="province" class="form-control"
+              placeholder="Enter your province" required
+              value="<?php echo isset($user_details['province']) ? htmlspecialchars($user_details['province']) : ''; ?>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Zipcode</label>
+            <input type="text" name="zipcode" class="form-control"
+              placeholder="Enter your zipcode" required
+              value="<?php echo isset($user_details['zipcode']) ? htmlspecialchars($user_details['zipcode']) : ''; ?>">
+          </div>
+
+          <!-- Profile Picture -->
+          <div class="form-group">
+            <label class="form-label">Profile Picture (optional)</label>
+            <?php if (isset($user_details['pfp']) && !empty($user_details['pfp'])): ?>
+              <div class="current-pfp">
+                <p>Current profile picture: <?php echo basename($user_details['pfp']); ?></p>
+              </div>
+            <?php endif; ?>
+            <input type="file" name="pfp" accept="image/*">
+          </div>
+
+          <!-- Payment Method -->
+          <div class="form-group">
+            <label class="form-label">Payment Methods *</label>
+            <select name="payment_method" required>
+              <option value="">--- Select a Method ---</option>
+              <option value="Gcash" <?php echo (isset($user_details['payment_method']) && $user_details['payment_method'] == 'Gcash') ? 'selected' : ''; ?>>Gcash</option>
+              <option value="Card" <?php echo (isset($user_details['payment_method']) && $user_details['payment_method'] == 'Card') ? 'selected' : ''; ?>>Card</option>
+              <option value="Cash-on-delivery" <?php echo (isset($user_details['payment_method']) && $user_details['payment_method'] == 'Cash-on-delivery') ? 'selected' : ''; ?>>Cash-on-delivery</option>
+            </select>
           </div>
         </div>
 
-        <?php if (!empty($message)): ?>
-          <div class="alert <?php echo strpos($message, 'Error') !== false ? 'alert-danger' : 'alert-success'; ?>">
-            <?php echo $message; ?>
-          </div>
-        <?php endif; ?>
-
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data">
-          <div class="modal-body">
-            <p class="instruction-text">Please complete your profile information to continue</p>
-
-            <!-- Full Name -->
-            <div class="form-group">
-              <label class="form-label">Full Name *</label>
-              <input type="text" name="full_name" id="full_name" class="form-control"
-                placeholder="Enter your full name" required
-                value="<?php echo !empty($default_name) ? htmlspecialchars($default_name) : (isset($user_details['full_name']) ? htmlspecialchars($user_details['full_name']) : ''); ?>">
-            </div>
-
-            <!-- Email Address-->
-            <div class="form-group">
-              <label class="form-label">Email Address *</label>
-              <input type="email" name="email" id="email" class="form-control"
-                placeholder="Enter your email" required
-                value="<?php echo !empty($default_email) ? htmlspecialchars($default_email) : (isset($user_details['email']) ? htmlspecialchars($user_details['email']) : ''); ?>">
-              <span class="verified-badge">(verified)</span>
-            </div>
-
-            <!-- Phone Number -->
-            <div class="form-group">
-              <label class="form-label">Phone Number *</label>
-              <input type="tel" name="phone_number" class="form-control"
-                placeholder="Enter your phone number" required
-                value="<?php echo isset($user_details['phone_number']) ? htmlspecialchars($user_details['phone_number']) : ''; ?>">
-            </div>
-
-            <!-- Shipping Address -->
-            <div class="form-group">
-              <label class="form-label">Street</label>
-              <input type="text" name="street" class="form-control"
-                placeholder="Enter your street" required
-                value="<?php echo isset($user_details['street']) ? htmlspecialchars($user_details['street']) : ''; ?>">
-            </div>
-            <div class="form-group">
-              <label class="form-label">City</label>
-              <input type="text" name="city" class="form-control"
-                placeholder="Enter your city" required
-                value="<?php echo isset($user_details['city']) ? htmlspecialchars($user_details['city']) : ''; ?>">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Province</label>
-              <input type="text" name="province" class="form-control"
-                placeholder="Enter your province" required
-                value="<?php echo isset($user_details['province']) ? htmlspecialchars($user_details['province']) : ''; ?>">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Zipcode</label>
-              <input type="text" name="zipcode" class="form-control"
-                placeholder="Enter your zipcode" required
-                value="<?php echo isset($user_details['zipcode']) ? htmlspecialchars($user_details['zipcode']) : ''; ?>">
-            </div>
-
-            <!-- Profile Picture -->
-            <div class="form-group">
-              <label class="form-label">Profile Picture (optional)</label>
-              <?php if (isset($user_details['pfp']) && !empty($user_details['pfp'])): ?>
-                <div class="current-pfp">
-                  <p>Current profile picture: <?php echo basename($user_details['pfp']); ?></p>
-                </div>
-              <?php endif; ?>
-              <input type="file" name="pfp" accept="image/*">
-            </div>
-
-            <!-- Payment Method -->
-            <div class="form-group">
-              <label class="form-label">Payment Methods *</label>
-              <select name="payment_method" required>
-                <option value="">--- Select a Method ---</option>
-                <option value="Gcash" <?php echo (isset($user_details['payment_method']) && $user_details['payment_method'] == 'Gcash') ? 'selected' : ''; ?>>Gcash</option>
-                <option value="Card" <?php echo (isset($user_details['payment_method']) && $user_details['payment_method'] == 'Card') ? 'selected' : ''; ?>>Card</option>
-                <option value="Cash-on-delivery" <?php echo (isset($user_details['payment_method']) && $user_details['payment_method'] == 'Cash-on-delivery') ? 'selected' : ''; ?>>Cash-on-delivery</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <p class="required-fields-note">* Required fields</p>
-            <button type="reset">Reset</button>
-            <button type="submit" name="submit" class="submit-button">Save & Continue</button>
-          </div>
-        </form>
-      </div>
+        <div class="modal-footer">
+          <p class="required-fields-note">* Required fields</p>
+          <button type="reset">Reset</button>
+          <button type="submit" name="submit" class="submit-button">Save & Continue</button>
+        </div>
+      </form>
     </div>
   <?php endif; ?>
 </body>

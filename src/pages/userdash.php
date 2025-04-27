@@ -13,7 +13,17 @@ if ($conn->connect_error) {
 
 $user_id = $_SESSION['user_id'];
 
-// items listed
+$profileCheckStmt = $conn->prepare("SELECT profile_complete FROM users WHERE user_id = ?");
+$profileCheckStmt->bind_param("i", $user_id);
+$profileCheckStmt->execute();
+$profileResult = $profileCheckStmt->get_result();
+$profileData = $profileResult->fetch_assoc();
+
+if (!isset($profileData['profile_complete']) || $profileData['profile_complete'] != 1) {
+    header("Location: predashboard.php");
+    exit();
+}
+
 $total_listed = 0;
 $list_query = $conn->prepare("SELECT COUNT(*) FROM listings WHERE seller_id = ?");
 if ($list_query) {
@@ -63,7 +73,7 @@ $delete_message = '';
 // delete action
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']) && is_numeric($_GET['id']) && isset($_GET['confirm']) && $_GET['confirm'] == 'yes') {
     $product_id = $_GET['id'];
-    
+
     $check_query = $conn->prepare("SELECT seller_id FROM listings WHERE listing_id = ?");
     $check_query->bind_param("i", $product_id);
     $check_query->execute();
@@ -175,6 +185,25 @@ if ($isLoggedIn) {
 } else {
     header("Location: ../pages/ewasteWeb.php#loginSection");
     exit();
+}
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../pages/ewasteWeb.php#Login");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+
+$show_profile_popup = false;
+$profile_message = "";
+
+if (isset($_SESSION['profile_success']) && $_SESSION['profile_success']) {
+    $show_profile_popup = true;
+    $profile_message = $_SESSION['profile_message'] ?? "Profile completed successfully!";
+
+
+    unset($_SESSION['profile_success']);
+    unset($_SESSION['profile_message']);
 }
 
 $conn->close();
@@ -320,15 +349,22 @@ $conn->close();
             margin-bottom: 20px;
             border-radius: 5px;
             font-weight: 500;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             animation: fadeIn 0.5s ease-out;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .success-message {
@@ -358,7 +394,7 @@ $conn->close();
             margin-right: 10px;
             font-size: 1.2em;
         }
-        
+
         .modal {
             display: none;
             position: fixed;
@@ -387,6 +423,7 @@ $conn->close();
                 opacity: 0;
                 transform: translateY(-50px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -458,18 +495,68 @@ $conn->close();
         .modal-delete:hover {
             background-color: #e53935;
         }
-        
+
         .status-badge {
             padding: 3px 8px;
             border-radius: 12px;
             font-size: 0.85em;
             font-weight: 500;
         }
-        
+
         .status-badge.approved {
             background-color: #e8f5e9;
             color: #2e7d32;
         }
+
+        .registration-success-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .registration-success-container1 {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .success-message {
+            color: green;
+            margin-bottom: 20px;
+        }
+
+        .registration-success-container1 a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .close-popup {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
     </style>
 </head>
 
@@ -497,14 +584,14 @@ $conn->close();
                 <!-- Profile Card -->
                 <div class="profile-card">
                     <div class="profile-image">
-                    <?php if (!empty($userDetails['pfp'])): ?>
-                        <img src="<?php echo htmlspecialchars($userDetails['pfp']); ?>" alt="Profile Picture" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">
+                        <?php if (!empty($userDetails['pfp'])): ?>
+                            <img src="<?php echo htmlspecialchars($userDetails['pfp']); ?>" alt="Profile Picture" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">
                         <?php else: ?>
-                        <div class="profile-image-placeholder">X</div>
-                         <?php endif; ?>
-                </div>
+                            <div class="profile-image-placeholder">X</div>
+                        <?php endif; ?>
+                    </div>
                     <div class="profile-details">
-                    <h2 class="username"> <?php echo htmlspecialchars($userDetails['full_name'] ?? 'Guest'); ?> </h2>
+                        <h2 class="username"> <?php echo htmlspecialchars($userDetails['full_name'] ?? 'Guest'); ?> </h2>
                         <a href="#" class="profile-link">Edit Profile</a>
                         <a href="#" class="profile-link">Change Password</a>
                         <button id="logoutBtn" class="btn" onclick="window.location.href='logout.php'">Log out</button>
@@ -610,10 +697,10 @@ $conn->close();
                                             <td><?= date("M d, Y", strtotime($listing['created_at'])) ?></td>
                                             <td>
                                                 <a href="sell.php?id=<?= $listing['listing_id'] ?>" class="action-btn">Edit</a>
-                                                <a href="#" class="action-btn delete-btn" 
-                                                data-id="<?= $listing['listing_id'] ?>" 
-                                                data-name="<?= htmlspecialchars($listing['product_name']) ?>"
-                                                onclick="showDeleteModal(this)">Delete</a>
+                                                <a href="#" class="action-btn delete-btn"
+                                                    data-id="<?= $listing['listing_id'] ?>"
+                                                    data-name="<?= htmlspecialchars($listing['product_name']) ?>"
+                                                    onclick="showDeleteModal(this)">Delete</a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -686,9 +773,15 @@ $conn->close();
             </div>
         </div>
     </div>
-
+    <?php if ($show_profile_popup): ?>
+        <div class='registration-success-container' id='profileSuccessPopup'>
+            <div class='registration-success-container1'>
+                <h2 class='success-message'><?php echo $profile_message; ?></h2>
+                <button class='close-popup' onclick="document.getElementById('profileSuccessPopup').style.display='none';">Close</button>
+            </div>
+        </div>
+    <?php endif; ?>
     <script>
-        // Script to change listing tabs
         document.addEventListener('DOMContentLoaded', function() {
             function showActiveListings() {
                 document.getElementById('active-listings').classList.add('active');
@@ -703,12 +796,12 @@ $conn->close();
                 document.getElementById('active-tab').classList.remove('active');
                 document.getElementById('sold-tab').classList.add('active');
             }
-            
+
             document.getElementById('active-tab').addEventListener('click', function(e) {
                 e.preventDefault();
                 showActiveListings();
             });
-            
+
             document.getElementById('sold-tab').addEventListener('click', function(e) {
                 e.preventDefault();
                 showSoldListings();
@@ -732,14 +825,14 @@ $conn->close();
             const modal = document.getElementById('deleteModal');
             const productId = element.getAttribute('data-id');
             const productName = element.getAttribute('data-name');
-            
+
             document.getElementById('deleteItemName').textContent = productName;
             document.getElementById('confirmDelete').href = `?action=delete&id=${productId}&confirm=yes`;
-            
+
             modal.style.display = 'block';
         }
 
-        function closeModal() { 
+        function closeModal() {
             document.getElementById('deleteModal').style.display = 'none';
         }
 
@@ -751,4 +844,5 @@ $conn->close();
         }
     </script>
 </body>
+
 </html>

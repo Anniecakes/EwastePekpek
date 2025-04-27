@@ -1,48 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Sign Up</title>
-        <link rel="stylesheet" href="../../src/styles/ewasteWeb.css"> 
-    </head>
+<?php
+session_start();
 
-    <body>
-        <?php
-        include 'db_connect.php';
+$conn = new mysqli("localhost", "root", "", "ewaste_db");
 
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $full_name = $_POST['full_name'];
-            $email = $_POST['email'];
-            $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Secure password hashing
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
-            $check_email = $conn->prepare("SELECT * FROM users WHERE email = ?");
-            $check_email->bind_param("s", $email);
-            $check_email->execute();
-            $result = $check_email->get_result();
+if (isset($_POST['signup'])) {
+    $full_name = $_POST['full_name'];
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+    
+    if (empty($full_name) || empty($email) || empty($password) || empty($confirm_password)) {
+        $_SESSION['signup_error'] = "All fields are required";
+        header("Location: ewasteWeb.php#signupForm");
+        exit();
+    }
+    
+    if ($password !== $confirm_password) {
+        $_SESSION['signup_error'] = "Passwords do not match";
+        header("Location: ewasteWeb.php#signupForm");
+        exit();
+    }
 
-            if ($result->num_rows > 0) {
-                echo "Email already registered! Try logging in.";
-            } else {
-                $stmt = $conn->prepare("INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)");
-                $stmt->bind_param("sss", $full_name, $email, $password);
+    if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || 
+        !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+        $_SESSION['signup_error'] = "Password must be at least 8 characters and include uppercase, lowercase, and numbers";
+        header("Location: ewasteWeb.php#signupForm");
+        exit();
+    }
 
-                if ($stmt->execute()) {
+    $stmt = $conn->prepare("SELECT email FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $_SESSION['signup_error'] = "Email already exists. Please use a different email or log in.";
+        header("Location: ewasteWeb.php#signupForm");
+        exit();
+    }
+    
+   
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-                    $user_id = $stmt->insert_id;
-                
-                    session_start();
-                    $_SESSION['user_id'] = $user_id;
-                    $_SESSION['temp_name'] = $_POST['name']; 
-                    $_SESSION['temp_email'] = $_POST['email']; 
-                    header("Location: predashboard.php");
-                    exit();
-                }
-                 else {
-                    echo "Error: " . $stmt->error;
-                }
-            }
-        }
-        ?>
+    $stmt = $conn->prepare("INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $full_name, $email, $hashed_password);
+    
+    if ($stmt->execute()) {
 
+        $user_id = $conn->insert_id;
+        
 
-    <body>
-</html>
+        $_SESSION['user_id'] = $user_id;
+        $_SESSION['full_name'] = $full_name;
+        $_SESSION['just_logged_in'] = true;
+        
+        header("Location: predashboard.php");
+        exit();
+    } else {
+        $_SESSION['signup_error'] = "Registration failed: " . $conn->error;
+        header("Location: ewasteWeb.php#signupForm");
+        exit();
+    }
+    
+    $stmt->close();
+}
+
+$conn->close();
+?>

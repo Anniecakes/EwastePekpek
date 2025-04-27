@@ -9,6 +9,23 @@ session_start();
 $logged_in = isset($_SESSION['user_id']);
 $user_id = $logged_in ? $_SESSION['user_id'] : 0;
 
+if ($logged_in) {
+    $check_profile_sql = "SELECT profile_completed FROM users WHERE user_id = ?";
+    $check_profile_stmt = $conn->prepare($check_profile_sql);
+    $check_profile_stmt->bind_param("i", $user_id);
+    $check_profile_stmt->execute();
+    $profile_result = $check_profile_stmt->get_result();
+    
+    if ($profile_result->num_rows > 0) {
+        $profile_data = $profile_result->fetch_assoc();
+        $profile_completed = $profile_data['profile_completed'];
+        
+        if (!$profile_completed) {
+            header("Location: predashboard.php");
+            exit;
+        }
+    }
+}
 if ($logged_in && isset($_POST['cart_action'])) {
     $action = $_POST['cart_action'];
 
