@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
-    // Start transaction
+
     $conn->begin_transaction();
 
 
@@ -159,7 +159,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<a href='ewasteWeb.php'>Go back to home</a>";
         exit;
     } catch (Exception $e) {
-        // If anything failed, roll back changes
         $conn->rollback();
         echo "❌ Error placing order: " . $e->getMessage();
     }

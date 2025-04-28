@@ -28,7 +28,6 @@ if ($userResult->num_rows > 0) {
   $default_email = '';
 }
 
-// Check if user details already exist
 $detailStmt = $conn->prepare("SELECT * FROM user_details WHERE user_id = ?");
 $detailStmt->bind_param("i", $user_id);
 $detailStmt->execute();

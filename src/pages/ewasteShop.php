@@ -62,7 +62,7 @@ if ($logged_in && isset($_POST['cart_action'])) {
         $product_id = $_POST['product_id'];
         $quantity = $_POST['quantity'];
 
-        // Check stock availability first
+        // Check stock availability
         $stock_sql = "SELECT quantity FROM products WHERE product_id = ?";
         $stock_stmt = $conn->prepare($stock_sql);
         $stock_stmt->bind_param("i", $product_id);
@@ -384,11 +384,9 @@ $result = $conn->query($sql);
             
             loadCartFromServer();
 
-            // Select all checkbox handler
             selectAllCheckbox.addEventListener("change", function() {
                 const checkboxes = document.querySelectorAll(".cart-item-checkbox:not(#selectAll)");
                 checkboxes.forEach(checkbox => {
-                    // Only select items that are in stock
                     const itemElement = checkbox.closest(".item");
                     const productId = parseInt(itemElement.dataset.productId);
                     const cartItem = cart.find(item => item.id === productId);
@@ -402,14 +400,12 @@ $result = $conn->query($sql);
                 updateActionButtons();
             });
             
-            // Delete selected items handler
             deleteSelectedBtn.addEventListener("click", function() {
                 if (this.classList.contains("disabled")) return;
                 
                 const selectedItems = getSelectedItems();
                 if (selectedItems.length === 0) return;
                 
-                // Confirm deletion
                 if (confirm(`Are you sure you want to remove ${selectedItems.length} selected item(s) from your cart?`)) {
                     selectedItems.forEach(productId => {
                         const index = cart.findIndex(item => item.id === productId);
@@ -424,17 +420,14 @@ $result = $conn->query($sql);
                 }
             });
             
-            // Checkout selected items handler
             checkoutSelectedBtn.addEventListener("click", function() {
                 if (this.classList.contains("disabled")) return;
                 
                 const selectedItems = getSelectedItems();
                 if (selectedItems.length === 0) return;
-                
-                // Filter cart to only include selected items
+
                 const selectedCart = cart.filter(item => selectedItems.includes(item.id));
                 
-                // Redirect to checkout with selected items
                 window.location.href = "checkout1.php?cartData=" + encodeURIComponent(JSON.stringify(selectedCart));
             });
 
@@ -518,7 +511,7 @@ $result = $conn->query($sql);
                 cart.forEach((item, index) => {
                     total += item.quantity;
                     
-                    // Check if item is out of stock or has insufficient quantity
+                    // Check if item is out of stock
                     if (item.stock <= 0) {
                         hasOutOfStockItems = true;
                         outOfStockNames.push(item.name);
@@ -554,7 +547,6 @@ $result = $conn->query($sql);
 
                 totalQuantity.innerText = total;
                 
-                // Update stock warning and checkout button state
                 if (hasOutOfStockItems || hasInsufficientStockItems) {
                     stockWarning.innerHTML = "Unable to checkout: " + outOfStockNames.join(", ");
                     checkoutButton.classList.add("disabled");
@@ -609,12 +601,10 @@ $result = $conn->query($sql);
                     });
                 });
                 
-                // Item selection handlers
                 document.querySelectorAll(".cart-item-checkbox:not(#selectAll)").forEach(checkbox => {
                     checkbox.addEventListener("change", function() {
                         updateActionButtons();
                         
-                        // Update "Select All" checkbox state
                         const allCheckboxes = document.querySelectorAll(".cart-item-checkbox:not(#selectAll):not(:disabled)");
                         const checkedCheckboxes = document.querySelectorAll(".cart-item-checkbox:not(#selectAll):checked");
                         
@@ -626,7 +616,6 @@ $result = $conn->query($sql);
                     });
                 });
                 
-                // Add click handler for checkout button to validate stock before proceeding
                 document.getElementById("checkoutButton").addEventListener("click", function(e) {
                     if (this.classList.contains("disabled")) {
                         e.preventDefault();
@@ -636,7 +625,6 @@ $result = $conn->query($sql);
                 });
             }
             
-            // Get selected items (product IDs)
             function getSelectedItems() {
                 const selectedItems = [];
                 document.querySelectorAll(".cart-item-checkbox:not(#selectAll):checked").forEach(checkbox => {
@@ -662,14 +650,12 @@ $result = $conn->query($sql);
                 document.querySelector('.selected-total-price').textContent = `Selected Total: P ${totalPrice.toFixed(2)}`;
             }
             
-            // Update action buttons state based on selection
             function updateActionButtons() {
                 const selectedItems = getSelectedItems();
                 
                 if (selectedItems.length > 0) {
                     deleteSelectedBtn.classList.remove("disabled");
                     
-                    // Check if all selected items are in stock for checkout
                     const allInStock = selectedItems.every(productId => {
                         const item = cart.find(item => item.id === productId);
                         return item && item.stock > 0 && item.quantity <= item.stock;
@@ -685,7 +671,6 @@ $result = $conn->query($sql);
                     checkoutSelectedBtn.classList.add("disabled");
                 }
                 
-                // Update the selected total price
                 updateSelectedTotal();
             }
 

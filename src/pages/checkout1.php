@@ -1,7 +1,6 @@
 
 
 <?php
-// 1. CONNECT TO DATABASE
 $conn = new mysqli("localhost", "root", "", "ewaste_db");
 
 if ($conn->connect_error) {

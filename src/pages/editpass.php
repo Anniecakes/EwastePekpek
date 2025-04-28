@@ -10,7 +10,6 @@ $message = '';
 $messageType = '';
 
 if (!isset($_SESSION['user_id'])) {
-    // Redirect to login page if not logged in
     header('Location: ../pages/ewasteWeb.php#loginSection');
     exit;
 }
@@ -22,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newPassword = $_POST['new_password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
 
-    // Validate form inputs
     if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
         $message = 'All fields are required';
         $messageType = 'error';

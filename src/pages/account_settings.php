@@ -8,7 +8,7 @@ $userDetails = null;
 if ($isLoggedIn) {
     $user_id = $_SESSION['user_id'];
 
-    // Get user details from the database
+    // Get user details 
     $stmt = $conn->prepare("SELECT * FROM user_details WHERE user_id = ? ORDER BY detail_id DESC LIMIT 1");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
@@ -18,7 +18,7 @@ if ($isLoggedIn) {
         $userDetails = $result->fetch_assoc();
     }
 
-    //Updates user details if form was submitted
+    //Updates user details
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $update_email = $_POST['update_email'];
         $update_name = $_POST['update_fullname'];
@@ -29,7 +29,7 @@ if ($isLoggedIn) {
         $update_zipcode = $_POST['update_zipcode'];  
         $update_payment_method = $_POST['payment_method'];
     
-        // Handle profile picture upload
+        // pfp
         if (isset($_FILES['update_pfp']) && $_FILES['update_pfp']['error'] == UPLOAD_ERR_OK) {
             $pfp_tmp_name = $_FILES['update_pfp']['tmp_name'];
             $pfp_name = basename($_FILES['update_pfp']['name']);
@@ -46,7 +46,6 @@ if ($isLoggedIn) {
     
         if ($update_stmt->execute()) {
             echo "<p style='color: green;'>Profile has been updated successfully!</p>";
-            // Refresh userDetails from the DB
             $userDetails['email'] = $update_email;
             $userDetails['full_name'] = $update_name;
             $userDetails['phone_number'] = $update_phone_number;

@@ -1,10 +1,7 @@
 <?php
-// Start session at the beginning of the file
 session_start();
 include 'db_connect.php';
 
-// Remove the local message variable since we're using session-based messages
-// $message = "";
 
 define('STATUS_PENDING', 'Pending Review');
 define('STATUS_APPROVED', 'Approved');
@@ -153,7 +150,6 @@ if ($update_empty) {
                 <?= $_SESSION['message']; ?>
             </div>
             <?php 
-            // Clear the flash message after displaying
             unset($_SESSION['message']);
             unset($_SESSION['message_type']); 
             ?>
@@ -171,7 +167,7 @@ if ($update_empty) {
             </a>
         </div>
 
-        <!-- Pending Products Tab -->
+        <!-- Pending Products -->
         <div id="pending-tab" class="tab-content <?= $active_status == 'pending' ? 'active' : '' ?>">
             <?php if ($pending_products->num_rows > 0): ?>
                 <table>
@@ -231,7 +227,7 @@ if ($update_empty) {
             <?php endif; ?>
         </div>
 
-        <!-- Approved Products Tab -->
+        <!-- Approved Products -->
         <div id="approved-tab" class="tab-content <?= $active_status == 'approved' ? 'active' : '' ?>">
             <?php if ($approved_products->num_rows > 0): ?>
                 <table>
@@ -284,7 +280,7 @@ if ($update_empty) {
             <?php endif; ?>
         </div>
 
-        <!-- Rejected Products Tab -->
+        <!-- Rejected Products -->
         <div id="rejected-tab" class="tab-content <?= $active_status == 'rejected' ? 'active' : '' ?>">
             <?php if ($rejected_products->num_rows > 0): ?>
                 <table>

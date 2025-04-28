@@ -1,13 +1,12 @@
 <?php
 session_start();
 
-// Check if user is logged in
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../pages/ewasteWeb.php#loginSection");
     exit();
 }
 
-// Set logged_in variable for navbar
 $logged_in = true;
 
 $conn = new mysqli("localhost", "root", "", "ewaste_db");
@@ -20,7 +19,6 @@ $product_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $message = "";
 $error = "";
 
-// Check if the product exists and belongs to the current user
 $check_query = $conn->prepare("SELECT * FROM listings WHERE listing_id = ? AND seller_id = ?");
 $check_query->bind_param("ii", $product_id, $user_id);
 $check_query->execute();
@@ -33,27 +31,24 @@ if ($result->num_rows === 0) {
 
 $product = $result->fetch_assoc();
 
-// Check if form is submitted for update
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
     $product_name = trim($_POST['product_name']);
     $product_price = floatval($_POST['product_price']);
     $product_description = trim($_POST['product_description']);
     $product_condition = trim($_POST['product_condition']);
     
-    // Validate inputs
     if (empty($product_name) || $product_price <= 0 || empty($product_description) || empty($product_condition)) {
         $error = "All fields are required and price must be greater than zero.";
     } else {
-        // Handle image upload if a new image is provided
-        $image_path = $product['product_image']; // Keep existing image by default
-        
+
+        $image_path = $product['product_image']; 
         if(isset($_FILES['product_image']) && $_FILES['product_image']['error'] === 0) {
             $upload_dir = '../uploads/';
             $file_extension = pathinfo($_FILES['product_image']['name'], PATHINFO_EXTENSION);
             $filename = 'product_' . $product_id . '_' . time() . '.' . $file_extension;
             $target_file = $upload_dir . $filename;
             
-            // Check if image file is a valid image
             $valid_extensions = array("jpg", "jpeg", "png", "gif");
             if(in_array(strtolower($file_extension), $valid_extensions)) {
                 if(move_uploaded_file($_FILES['product_image']['tmp_name'], $target_file)) {
@@ -67,7 +62,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
         }
         
         if(empty($error)) {
-            // Update product in database
             $update_query = $conn->prepare("UPDATE listings SET 
                 product_name = ?, 
                 product_price = ?, 
@@ -100,7 +94,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
     }
 }
 
-// Check if delete request is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
     // Confirm the product belongs to the user
     $delete_query = $conn->prepare("DELETE FROM listings WHERE listing_id = ? AND seller_id = ?");
@@ -117,8 +110,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
 }
 
 
-
-// Get conditions for dropdown
 $conditions = array("New", "Like New", "Good", "Fair", "Poor");
 
 $conn->close();
@@ -216,7 +207,6 @@ $conn->close();
             border: 1px solid #f5c6cb;
         }
 
-        /* Confirmation modal */
         .modal {
             display: none;
             position: fixed;
@@ -245,7 +235,6 @@ $conn->close();
             gap: 10px;
         }
 
-        /* Product image preview */
         .image-preview {
             margin-bottom: 20px;
             text-align: center;
@@ -409,7 +398,7 @@ $conn->close();
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete Confirmation -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <h3>Confirm Delete</h3>

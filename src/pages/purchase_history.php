@@ -27,7 +27,6 @@ if ($purchase_query) {
     $purchase_query->execute();
     $result = $purchase_query->get_result();
     while ($row = $result->fetch_assoc()) {
-        // Count items in each order
         $item_count_query = $conn->prepare("
             SELECT COUNT(*) as item_count FROM order_items WHERE order_id = ?
         ");

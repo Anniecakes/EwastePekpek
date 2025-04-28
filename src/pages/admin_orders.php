@@ -1,8 +1,6 @@
 <?php
-// Start session at the beginning of the file
 session_start();
 include 'db_connect.php';
-
 
 define('STATUS_PENDING', 'Pending');
 define('STATUS_PROCESSING', 'Processing');
@@ -199,7 +197,6 @@ function paginationLinks($current_page, $total_pages, $status)
                 <?= $_SESSION['message']; ?>
             </div>
             <?php 
-            // Clear the flash message after displaying
             unset($_SESSION['message']);
             unset($_SESSION['message_type']); 
             ?>
