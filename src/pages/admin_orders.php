@@ -197,6 +197,7 @@ function paginationLinks($current_page, $total_pages, $status)
                 <?= $_SESSION['message']; ?>
             </div>
             <?php 
+
             unset($_SESSION['message']);
             unset($_SESSION['message_type']); 
             ?>
