@@ -113,34 +113,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                street, city, province, zipcode, pfp, payment_method) 
                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     
-
     if ($pfp) {
       $insertStmt->bind_param(
-        "issssssss",
-        $user_id,
-        $full_name,
-        $phone_number,
-        $street,
-        $city,
-        $province,
-        $zipcode,
-        $pfp,
-        $payment_method
+        "issssssss", $user_id, $full_name, $phone_number, $street, $city, $province, $zipcode, $pfp, $payment_method
       );
     } else {
-
+      
       $emptyPfp = "";
       $insertStmt->bind_param(
-        "issssssss",
-        $user_id,
-        $full_name,
-        $phone_number,
-        $street,
-        $city,
-        $province,
-        $zipcode,
-        $emptyPfp,
-        $payment_method
+        "issssssss", $user_id, $full_name, $phone_number, $street, $city, $province, $zipcode, $pfp, $payment_method
       );
     }
 
@@ -148,12 +129,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $profile_completed = true;
       $message = "Profile completed successfully!";
 
-
       $updateProfileStatus = $conn->prepare("UPDATE users SET profile_completed = 1 WHERE user_id = ?");
       $updateProfileStatus->bind_param("i", $user_id);
       $updateProfileStatus->execute();
 
-   
       $_SESSION['profile_success'] = true;
       $_SESSION['profile_message'] = $message;
       header("Location: userdash.php");
@@ -212,7 +191,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       font-weight: bold;
     }
 
-    /* Style for disabled/read-only inputs */
     input[readonly] {
       background-color: #f0f0f0;
       cursor: not-allowed;
@@ -268,7 +246,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               value="<?php echo htmlspecialchars($default_email); ?>" readonly>
             <small class="form-text text-muted">Email cannot be changed</small>
             <span class="verified-badge">(verified)</span>
-            <!-- Note: removed the name attribute so it won't be submitted -->
           </div>
 
           <!-- Phone Number -->
