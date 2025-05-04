@@ -613,7 +613,7 @@ $conn->close();
                     <div class="sidebar-menu-section">
                         <h3 class="section-title">Settings</h3>
                         <a href="account_settings.php" class="sidebar-link">Account Settings<i class="fas fa-cog"></i></a>
-                        <a href="editpass.php   " class="sidebar-link">Privacy Settings<i class="fas fa-shield-alt"></i></a>
+                        <a href="privacy_settings.php   " class="sidebar-link">Privacy Settings<i class="fas fa-shield-alt"></i></a>
                     </div>
                 </div>
             </aside>
