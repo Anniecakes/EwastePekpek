@@ -558,8 +558,6 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                 </div>
             </section>
         </section>
-    <?php else: ?>
-
     <?php endif; ?>
 
     <!-- Back to Top Button -->
