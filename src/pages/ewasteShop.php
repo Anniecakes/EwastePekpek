@@ -44,7 +44,6 @@ if ($logged_in && isset($_POST['cart_action'])) {
         $product_id = $_POST['product_id'];
         $quantity = $_POST['quantity'];
 
-        // Check stock availability
         $stock_sql = "SELECT quantity FROM products WHERE product_id = ?";
         $stock_stmt = $conn->prepare($stock_sql);
         $stock_stmt->bind_param("i", $product_id);
@@ -134,7 +133,6 @@ $result = $conn->query($sql);
             font-weight: bold;
         }
 
-        /* New styles for cart selection feature */
         .cart-item-checkbox {
             transform: scale(1.3);
             margin-right: 10px;
@@ -186,8 +184,7 @@ $result = $conn->query($sql);
             display: flex;
             flex: 1;
         }
-        
-        /* Style for selected total price */
+
         .selected-total-price {
             margin-left: auto;
             font-weight: bold;
@@ -300,8 +297,7 @@ $result = $conn->query($sql);
     <?php if ($logged_in): ?>
         <div class="cart" id="cart">
             <h2>CART</h2>
-            
-            <!-- Add Select All checkbox with price display -->
+
             <div class="select-all-container">
                 <input type="checkbox" id="selectAll" class="cart-item-checkbox">
                 <label for="selectAll">Select All</label>
@@ -310,17 +306,15 @@ $result = $conn->query($sql);
             
             <div class="listCart"></div>
             <div id="stockWarning" class="stock-warning"></div>
-            
-            <!-- Add action buttons for selected items -->
+
             <div class="cart-actions">
                 <button id="deleteSelectedBtn" class="action-btn disabled">Delete Selected</button>
-                <button id="checkoutSelectedBtn" class="action-btn disabled">Checkout Selected</button>
             </div>
             
             <div class="buttons">
                 <div class="close" onclick="toggleCart()">CLOSE</div>
                 <div class="checkout" id="checkoutButton">
-                    <a id="checkoutLink" href="#">CHECKOUT ALL</a>
+                    <a id="checkoutLink" href="#">Checkout</a>
                 </div>
             </div>
         </div>
@@ -361,14 +355,15 @@ $result = $conn->query($sql);
             const checkoutButton = document.getElementById("checkoutButton");
             const checkoutLink = document.getElementById("checkoutLink");
             const deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
-            const checkoutSelectedBtn = document.getElementById("checkoutSelectedBtn");
             const selectAllCheckbox = document.getElementById("selectAll");
             
             loadCartFromServer();
 
+            // Select all checkbox handler
             selectAllCheckbox.addEventListener("change", function() {
                 const checkboxes = document.querySelectorAll(".cart-item-checkbox:not(#selectAll)");
                 checkboxes.forEach(checkbox => {
+        
                     const itemElement = checkbox.closest(".item");
                     const productId = parseInt(itemElement.dataset.productId);
                     const cartItem = cart.find(item => item.id === productId);
@@ -376,18 +371,18 @@ $result = $conn->query($sql);
                     if (cartItem && cartItem.stock > 0 && cartItem.quantity <= cartItem.stock) {
                         checkbox.checked = selectAllCheckbox.checked;
                     } else if (selectAllCheckbox.checked) {
-                        checkbox.checked = false; // Don't select out of stock items
+                        checkbox.checked = false; 
                     }
                 });
                 updateActionButtons();
             });
-            
+
             deleteSelectedBtn.addEventListener("click", function() {
                 if (this.classList.contains("disabled")) return;
                 
                 const selectedItems = getSelectedItems();
                 if (selectedItems.length === 0) return;
-                
+
                 if (confirm(`Are you sure you want to remove ${selectedItems.length} selected item(s) from your cart?`)) {
                     selectedItems.forEach(productId => {
                         const index = cart.findIndex(item => item.id === productId);
@@ -400,17 +395,6 @@ $result = $conn->query($sql);
                     updateCart();
                     selectAllCheckbox.checked = false;
                 }
-            });
-            
-            checkoutSelectedBtn.addEventListener("click", function() {
-                if (this.classList.contains("disabled")) return;
-                
-                const selectedItems = getSelectedItems();
-                if (selectedItems.length === 0) return;
-
-                const selectedCart = cart.filter(item => selectedItems.includes(item.id));
-                
-                window.location.href = "checkout1.php?cartData=" + encodeURIComponent(JSON.stringify(selectedCart));
             });
 
             // Filter
@@ -492,8 +476,7 @@ $result = $conn->query($sql);
                 // Display all items in the cart
                 cart.forEach((item, index) => {
                     total += item.quantity;
-                    
-                    // Check if item is out of stock
+
                     if (item.stock <= 0) {
                         hasOutOfStockItems = true;
                         outOfStockNames.push(item.name);
@@ -502,7 +485,7 @@ $result = $conn->query($sql);
                         outOfStockNames.push(`${item.name} (requested: ${item.quantity}, available: ${item.stock})`);
                     }
                     
-                    // Add checkbox for item selection
+                    // item selection
                     const isSelectable = item.stock > 0 && item.quantity <= item.stock;
                     
                     cartContainer.innerHTML += `
@@ -551,7 +534,6 @@ $result = $conn->query($sql);
             }
 
             function attachEventHandlers() {
-                // Quantity adjustment handlers
                 document.querySelectorAll(".decrease").forEach(button => {
                     button.addEventListener("click", function() {
                         const index = parseInt(button.getAttribute("data-index"));
@@ -606,7 +588,7 @@ $result = $conn->query($sql);
                     }
                 });
             }
-            
+
             function getSelectedItems() {
                 const selectedItems = [];
                 document.querySelectorAll(".cart-item-checkbox:not(#selectAll):checked").forEach(checkbox => {
@@ -631,28 +613,14 @@ $result = $conn->query($sql);
                 
                 document.querySelector('.selected-total-price').textContent = `Selected Total: P ${totalPrice.toFixed(2)}`;
             }
-            
             function updateActionButtons() {
                 const selectedItems = getSelectedItems();
                 
                 if (selectedItems.length > 0) {
                     deleteSelectedBtn.classList.remove("disabled");
-                    
-                    const allInStock = selectedItems.every(productId => {
-                        const item = cart.find(item => item.id === productId);
-                        return item && item.stock > 0 && item.quantity <= item.stock;
-                    });
-                    
-                    if (allInStock) {
-                        checkoutSelectedBtn.classList.remove("disabled");
-                    } else {
-                        checkoutSelectedBtn.classList.add("disabled");
-                    }
                 } else {
                     deleteSelectedBtn.classList.add("disabled");
-                    checkoutSelectedBtn.classList.add("disabled");
                 }
-                
                 updateSelectedTotal();
             }
 

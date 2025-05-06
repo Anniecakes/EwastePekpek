@@ -8,21 +8,49 @@ if ($conn->connect_error) {
 
 $sql = "SELECT * FROM products ORDER BY product_id DESC";
 $result = $conn->query($sql);
-?>
 
-<?php
+
 session_start();
 $isLoggedIn = isset($_SESSION['user_id']);
 $justLoggedIn = false;
+
+
 if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) {
     $justLoggedIn = true;
     $_SESSION['just_logged_in'] = false;
 }
+
+// remember me
+if (!$isLoggedIn && isset($_COOKIE['remember'])) {
+    if (strpos($_COOKIE['remember'], ':') !== false) {
+        list($selector, $token) = explode(':', $_COOKIE['remember']);
+
+        $stmt = $conn->prepare("SELECT * FROM auth_tokens WHERE selector = ? AND expires > ?");
+        $now = time();
+        $stmt->bind_param("si", $selector, $now);
+        $stmt->execute();
+        $result_token = $stmt->get_result();
+
+        if ($result_token && $row = $result_token->fetch_assoc()) {
+            if (password_verify($token, $row['token'])) {
+                // Valid token, log the user in
+                $stmt = $conn->prepare("SELECT * FROM users WHERE user_id = ?");
+                $stmt->bind_param("i", $row['user_id']);
+                $stmt->execute();
+                $user_result = $stmt->get_result();
+
+                if ($user_result && $user = $user_result->fetch_assoc()) {
+                    $_SESSION['user_id'] = $user['user_id'];
+                    $_SESSION['full_name'] = $user['full_name'];
+                    $isLoggedIn = true;
+                }
+            }
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
-
-
 <html lang="en">
 
 <head>
@@ -37,7 +65,6 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Jersey+10&display=swap" rel="stylesheet">
@@ -264,10 +291,12 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
         margin-top: 8px;
         font-size: 0.85rem;
     }
+
+    .hidden {
+        display: none;
+    }
+    
 </style>
-
-
-
 
 <body>
     <!-- Log in popup -->
@@ -295,7 +324,7 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <a href="userdash.php"><i class="fa fa-user"></i></a>
                     <?php else: ?>
-                        <a href="#profile"><i class="fa fa-user"></i></a>
+                        <a href="#loginSection"><i class="fa fa-user"></i></a>
                     <?php endif; ?>
                 </li>
             </ul>
@@ -305,17 +334,13 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
     <!-- Main Content -->
 
     <!-- Home Section -->
-
     <section id="home" class="section home-section">
         <div class="text-box">
-
             <h1>E-WASTE PH</h1>
             <p>"Old tech, New harm—Dispose responsibly, Save our Planet."</p>
             <div class="cta-buttons">
                 <button onclick="handleAction('buy')" class="btn">Buy</button>
                 <button onclick="handleAction('sell')" class="btn">Sell</button>
-
-
             </div>
         </div>
     </section>
@@ -343,7 +368,7 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                 <h1 class="faq-header">FAQ</h1>
                 <h1 class="faq-header"><b>Need Assistance?</b></h1>
                 <h2 class="faq-welcome">
-                    Welcome to the E-WastePH Shop FAQ section! Here, we answer your most frequently asked questions about our electronic waste shop, where you can buy and sell e-waste scraps. We’re committed to promoting sustainable practices by giving old electronics a new purpose.
+                    Welcome to the E-WastePH Shop FAQ section! Here, we answer your most frequently asked questions about our electronic waste shop, where you can buy and sell e-waste scraps. We're committed to promoting sustainable practices by giving old electronics a new purpose.
                 </h2>
             </div>
 
@@ -366,14 +391,13 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                         <i class="fa fa-chevron-right"></i>
                     </label>
                     <div class="faq-detail">
-                        <p>You can find:
+                        <p>You can find:</p>
                         <ul>
                             <li>Refurbished electronics</li>
                             <li>Spare parts for repairs</li>
                             <li>Recyclable materials for DIY projects</li>
                             <li>Rare and vintage electronic components</li>
                         </ul>
-                        </p>
                     </div>
                 </div>
 
@@ -384,14 +408,12 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                         <i class="fa fa-chevron-right"></i>
                     </label>
                     <div class="faq-detail">
-                        <p>
                         <ul>
                             <li>Step 1: Create an account on our platform.</li>
                             <li>Step 2: List your e-waste with photos and descriptions.</li>
                             <li>Step 3: Set a price or choose to recycle it for free.</li>
                             <li>Step 4: Connect with buyers or schedule a pickup/drop-off for recycling.</li>
                         </ul>
-                        </p>
                     </div>
                 </div>
 
@@ -410,9 +432,6 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
             </div>
         </section>
     </section>
-
-
-
 
     <!-- Contact Section -->
     <section id="contact" class="section contact-section">
@@ -444,11 +463,9 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                             <p>P <?= number_format($row['price'], 2) ?></p>
 
                             <button class="btn add-to-cart" <?= $row['quantity'] <= 0 ? 'disabled' : '' ?>>Add to Cart</button>
-                            <!--buy will not work when not logged in-->
                             <button class="btn" <?= $row['quantity'] <= 0 ? 'disabled style="background-color: gray; cursor: not-allowed;"' : '' ?>
                                 onclick="<?= $row['quantity'] > 0 ? ($isLoggedIn ? 'location.href=\'checkout1.php?name=' . urlencode($row['name']) . '&price=' . $row['price'] . '&quantity=1&image=' . urlencode($row['image']) . '\'' : 'document.getElementById(\"loginSection\").scrollIntoView({ behavior: \"smooth\" })') : 'return false;' ?>">Buy
                             </button>
-
                         </div>
                     <?php endwhile; ?>
                 <?php else: ?>
@@ -462,8 +479,6 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                 <button type="submit" formaction="ewasteShop.php" class="show-more-btn">Show More in SHOP</button>
             </div>
         </form>
-        </div>
-
     </section>
 
     <!-- Profile Section -->
@@ -477,6 +492,7 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                     </p>
                 </div>
                 <div class="continueAcc">
+                    <!-- PHP Check for Form Handling -->
                     <?php
                     if (isset($_GET['error'])) {
                         echo "<p style='color: red;'>" . htmlspecialchars($_GET['error']) . "</p>";
@@ -487,6 +503,19 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                     <div id="loginForm">
                         <form action="login.php" method="POST">
                             <input type="hidden" name="signin" value="1">
+                            <?php
+                            $csrf_token = bin2hex(random_bytes(32));
+                            $_SESSION['csrf_token'] = $csrf_token;
+                            ?>
+                            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                            <?php
+                            if (isset($_SESSION['login_error'])) {
+                                echo '<div class="error-message" style="display: block; color: red; margin-bottom: 15px;">' .
+                                    htmlspecialchars($_SESSION['login_error']) . '</div>';
+                                unset($_SESSION['login_error']);
+                            }
+                            ?>
+
                             <ul>
                                 <li>
                                     <label>Email:</label>
@@ -502,16 +531,38 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                                     </div>
                                 </li>
                                 <li>
+                                    <label>
+                                        <input type="checkbox" name="remember_me"> Remember me
+                                    </label>
+                                </li>
+                                <li>
                                     <button type="submit" class="btn">Log in</button>
                                 </li>
+
                             </ul>
                         </form>
                     </div>
-
                     <!-- Signup Form -->
                     <div id="signupForm" class="hidden">
+                    <?php
+                    // Display signup error if it exists
+                    if (isset($_SESSION['signup_error'])) {
+                        echo '<div class="error-message" style="display: block; color: red; margin-bottom: 15px;">' . 
+                            htmlspecialchars($_SESSION['signup_error']) . 
+                        '</div>';
+                        unset($_SESSION['signup_error']);
+                    }
+                    ?>
                         <form action="signup.php" method="POST">
                             <input type="hidden" name="signup" value="1">
+                            <?php
+                            // Add CSRF token to signup form too
+                            if (!isset($csrf_token)) {
+                                $csrf_token = bin2hex(random_bytes(32));
+                                $_SESSION['csrf_token'] = $csrf_token;
+                            }
+                            ?>
+                            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                             <ul>
                                 <li>
                                     <label>Name:</label>
@@ -585,14 +636,12 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
 
         function handleAction(action) {
             if (isLoggedIn) {
-
                 if (action === 'buy') {
                     window.location.href = "ewasteShop.php";
                 } else if (action === 'sell') {
                     window.location.href = "sell.php";
                 }
             } else {
-
                 document.getElementById("loginSection").scrollIntoView({
                     behavior: "smooth"
                 });
@@ -605,7 +654,6 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
             const loginPopup = document.getElementById('loginPopup');
 
             if (justLoggedIn && loginPopup) {
-
                 setTimeout(function() {
                     loginPopup.classList.add('show');
                 }, 250);
@@ -630,10 +678,70 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                     }
                 });
             }
-        });
+
+            // scroll for signup login
+            const toggleForm = document.getElementById('toggleForm');
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const formTitle = document.getElementById('formTitle');
+            const formToggleText = document.getElementById('formToggleText');
 
 
-        document.addEventListener('DOMContentLoaded', function() {
+            function toggleFormFunc(e) {
+                e.preventDefault();
+                
+                if (loginForm.classList.contains('hidden')) {
+ 
+                    loginForm.classList.remove('hidden');
+                    signupForm.classList.add('hidden');
+                    formTitle.textContent = 'Log in';
+                    formToggleText.innerHTML = 'New to site? <a href="#" id="toggleForm">Sign up</a>';
+                } else {
+
+                    loginForm.classList.add('hidden');
+                    signupForm.classList.remove('hidden');
+                    formTitle.textContent = 'Sign up';
+                    formToggleText.innerHTML = 'Already have an account? <a href="#" id="toggleForm">Log in</a>';
+                }
+                
+
+                document.getElementById('toggleForm').addEventListener('click', toggleFormFunc);
+            }
+
+
+            if (toggleForm) {
+                toggleForm.addEventListener('click', toggleFormFunc);
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasSignupError = <?php echo isset($_SESSION['signup_error']) ? 'true' : 'false'; ?>;
+            
+            if (urlParams.has('signup_error') || hasSignupError) {
+                if (loginForm && signupForm) {
+                    loginForm.classList.add('hidden');
+                    signupForm.classList.remove('hidden');
+                    formTitle.textContent = 'Sign up';
+                    formToggleText.innerHTML = 'Already have an account? <a href="#" id="toggleForm">Log in</a>';
+                    
+                    document.getElementById('toggleForm').addEventListener('click', toggleFormFunc);
+                }
+            }
+
+            if (window.location.hash === '#signupForm') {
+                document.getElementById("loginSection").scrollIntoView({
+                    behavior: "smooth"
+                });
+                if (loginForm && signupForm) {
+                    loginForm.classList.add('hidden');
+                    signupForm.classList.remove('hidden');
+                    formTitle.textContent = 'Sign up';
+                    formToggleText.innerHTML = 'Already have an account? <a href="#" id="toggleForm">Log in</a>';
+                    
+                    document.getElementById('toggleForm').addEventListener('click', toggleFormFunc);
+                }
+            }
+
+
             document.querySelectorAll('.toggle-password').forEach(function(toggle) {
                 toggle.addEventListener('click', function() {
                     const targetId = this.getAttribute('data-target');
@@ -652,6 +760,23 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                 });
             });
 
+            document.querySelectorAll('.toggle-password').forEach(function(toggle) {
+                toggle.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    const icon = this.querySelector('i');
+
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    }
+                });
+            });
 
             const passwordInput = document.getElementById('signup-password');
             const confirmPasswordInput = document.getElementById('confirm-password');
@@ -664,50 +789,59 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
 
                 // Check length
                 const lengthElement = document.getElementById('length');
-                if (password.length >= 8) {
-                    lengthElement.className = 'valid';
-                    lengthElement.querySelector('i').className = 'fas fa-check-circle';
-                } else {
-                    lengthElement.className = 'invalid';
-                    lengthElement.querySelector('i').className = 'fas fa-times-circle';
-                    valid = false;
+                if (lengthElement) {
+                    if (password.length >= 8) {
+                        lengthElement.className = 'valid';
+                        lengthElement.querySelector('i').className = 'fas fa-check-circle';
+                    } else {
+                        lengthElement.className = 'invalid';
+                        lengthElement.querySelector('i').className = 'fas fa-times-circle';
+                        valid = false;
+                    }
                 }
 
                 // Check uppercase
                 const uppercaseElement = document.getElementById('uppercase');
-                if (/[A-Z]/.test(password)) {
-                    uppercaseElement.className = 'valid';
-                    uppercaseElement.querySelector('i').className = 'fas fa-check-circle';
-                } else {
-                    uppercaseElement.className = 'invalid';
-                    uppercaseElement.querySelector('i').className = 'fas fa-times-circle';
-                    valid = false;
+                if (uppercaseElement) {
+                    if (/[A-Z]/.test(password)) {
+                        uppercaseElement.className = 'valid';
+                        uppercaseElement.querySelector('i').className = 'fas fa-check-circle';
+                    } else {
+                        uppercaseElement.className = 'invalid';
+                        uppercaseElement.querySelector('i').className = 'fas fa-times-circle';
+                        valid = false;
+                    }
                 }
 
                 // Check lowercase
                 const lowercaseElement = document.getElementById('lowercase');
-                if (/[a-z]/.test(password)) {
-                    lowercaseElement.className = 'valid';
-                    lowercaseElement.querySelector('i').className = 'fas fa-check-circle';
-                } else {
-                    lowercaseElement.className = 'invalid';
-                    lowercaseElement.querySelector('i').className = 'fas fa-times-circle';
-                    valid = false;
+                if (lowercaseElement) {
+                    if (/[a-z]/.test(password)) {
+                        lowercaseElement.className = 'valid';
+                        lowercaseElement.querySelector('i').className = 'fas fa-check-circle';
+                    } else {
+                        lowercaseElement.className = 'invalid';
+                        lowercaseElement.className = 'invalid';
+                        lowercaseElement.querySelector('i').className = 'fas fa-times-circle';
+                        valid = false;
+                    }
                 }
 
                 // Check number
                 const numberElement = document.getElementById('number');
-                if (/[0-9]/.test(password)) {
-                    numberElement.className = 'valid';
-                    numberElement.querySelector('i').className = 'fas fa-check-circle';
-                } else {
-                    numberElement.className = 'invalid';
-                    numberElement.querySelector('i').className = 'fas fa-times-circle';
-                    valid = false;
+                if (numberElement) {
+                    if (/[0-9]/.test(password)) {
+                        numberElement.className = 'valid';
+                        numberElement.querySelector('i').className = 'fas fa-check-circle';
+                    } else {
+                        numberElement.className = 'invalid';
+                        numberElement.querySelector('i').className = 'fas fa-times-circle';
+                        valid = false;
+                    }
                 }
 
                 // Check if passwords match
-                if (password && confirmPasswordInput.value) {
+                if (password && confirmPasswordInput && confirmPasswordInput.value) {
                     if (password === confirmPasswordInput.value) {
                         matchStatus.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match!';
                         matchStatus.style.color = "#4caf50";
@@ -720,7 +854,9 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                     matchStatus.textContent = "";
                 }
 
-                signupBtn.disabled = !valid || !confirmPasswordInput.value || password !== confirmPasswordInput.value;
+                if (signupBtn) {
+                    signupBtn.disabled = !valid || !confirmPasswordInput || !confirmPasswordInput.value || password !== confirmPasswordInput.value;
+                }
             }
 
             if (passwordInput) {
@@ -730,9 +866,9 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
                 confirmPasswordInput.addEventListener('input', validatePassword);
             }
 
-            const signupForm = document.querySelector('#signupForm form');
-            if (signupForm) {
-                signupForm.addEventListener('submit', function(event) {
+            const signupFormElement = document.querySelector('#signupForm form');
+            if (signupFormElement) {
+                signupFormElement.addEventListener('submit', function(event) {
                     const password = passwordInput.value;
 
                     if (password.length < 8 || !(/[A-Z]/.test(password)) ||
@@ -747,8 +883,6 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
             }
         });
     </script>
-
-
 </body>
 
 </html>

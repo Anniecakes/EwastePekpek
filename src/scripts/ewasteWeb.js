@@ -1,4 +1,4 @@
-// Back to top
+// Back to top button functionality
 const upButton = document.getElementById("upButton");
 
 // Show button when scrolling down
@@ -15,13 +15,15 @@ upButton.onclick = function () {
     window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-
+// Login/Signup Form Toggle
 document.addEventListener("DOMContentLoaded", function () {
     const toggleFormLink = document.getElementById("toggleForm");
     const loginForm = document.getElementById("loginForm");
     const signupForm = document.getElementById("signupForm");
     const formTitle = document.getElementById("formTitle");
     const formToggleText = document.getElementById("formToggleText");
+    const loginBackground = document.querySelector('.login-background');
+    const signupBackground = document.querySelector('.signup-background');
 
     function toggleForms() {
         if (signupForm.classList.contains("hidden")) {
@@ -29,11 +31,21 @@ document.addEventListener("DOMContentLoaded", function () {
             loginForm.classList.add("hidden");
             formTitle.textContent = "Sign Up";
             formToggleText.innerHTML = 'Already have an account? <a href="#" id="toggleForm">Log in</a>';
+            // Toggle background if elements exist
+            if (loginBackground && signupBackground) {
+                loginBackground.classList.add("hidden");
+                signupBackground.classList.remove("hidden");
+            }
         } else {
             loginForm.classList.remove("hidden");
             signupForm.classList.add("hidden");
             formTitle.textContent = "Log in";
             formToggleText.innerHTML = 'New to site? <a href="#" id="toggleForm">Sign up</a>';
+            // Toggle background if elements exist
+            if (loginBackground && signupBackground) {
+                loginBackground.classList.remove("hidden");
+                signupBackground.classList.add("hidden");
+            }
         }
     }
 
@@ -45,27 +57,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-
-// JavaScript for Category Filter
-
+// Category Filter Functionality
 document.addEventListener('DOMContentLoaded', function() {
     const categoryFilter = document.getElementById('category-filter');
     const products = document.querySelectorAll('.product-card');
     
-    // Listen for category change
-    categoryFilter.addEventListener('change', function() {
-        const selectedCategory = categoryFilter.value; 
-        
-        products.forEach(function(product) {
-            const productCategory = product.getAttribute('value');  
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', function() {
+            const selectedCategory = categoryFilter.value; 
             
-            if (selectedCategory === 'all' || selectedCategory === productCategory) {
-                product.style.display = 'block'; 
-            } else {
-                product.style.display = 'none';  
-            }
+            products.forEach(function(product) {
+                const productCategory = product.getAttribute('value');  
+                
+                if (selectedCategory === 'all' || selectedCategory === productCategory) {
+                    product.style.display = 'block'; 
+                } else {
+                    product.style.display = 'none';  
+                }
+            });
         });
-    });
     }
 });
 
