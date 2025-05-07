@@ -40,20 +40,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             $_SESSION['just_logged_in'] = true;
             
-            //remember me
-            if (isset($_POST['remember_me'])) {
-                $token = bin2hex(random_bytes(32));
-                $selector = bin2hex(random_bytes(8));
-                $expires = time() + 60*60*24*30; // 30 days
-
-                $stmt = $conn->prepare("INSERT INTO auth_tokens (user_id, selector, token, expires) VALUES (?, ?, ?, ?)");
-                $hashedToken = password_hash($token, PASSWORD_DEFAULT);
-                $stmt->bind_param("issi", $row['user_id'], $selector, $hashedToken, $expires);
-                $stmt->execute();
-
-                setcookie("remember", $selector . ':' . $token, $expires, '/', '', false, true);
-            }
-            
             header("Location: ewasteWeb.php");
             exit();
         } else {

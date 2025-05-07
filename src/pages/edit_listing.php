@@ -84,7 +84,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
             if ($update_query->execute()) {
                 $message = "Listing updated successfully!";
                 
-                // Refresh product data
                 $result = $conn->query("SELECT * FROM listings WHERE listing_id = $product_id");
                 $product = $result->fetch_assoc();
             } else {
@@ -95,12 +94,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
-    // Confirm the product belongs to the user
     $delete_query = $conn->prepare("DELETE FROM listings WHERE listing_id = ? AND seller_id = ?");
     $delete_query->bind_param("ii", $product_id, $user_id);
     
     if ($delete_query->execute() && $delete_query->affected_rows > 0) {
-        // Redirect to dashboard with success message
         $_SESSION['message'] = "Listing deleted successfully!";
         header("Location: user_dashboard.php");
         exit();

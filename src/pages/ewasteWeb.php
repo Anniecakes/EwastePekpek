@@ -20,34 +20,7 @@ if (isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true) 
     $_SESSION['just_logged_in'] = false;
 }
 
-// remember me
-if (!$isLoggedIn && isset($_COOKIE['remember'])) {
-    if (strpos($_COOKIE['remember'], ':') !== false) {
-        list($selector, $token) = explode(':', $_COOKIE['remember']);
 
-        $stmt = $conn->prepare("SELECT * FROM auth_tokens WHERE selector = ? AND expires > ?");
-        $now = time();
-        $stmt->bind_param("si", $selector, $now);
-        $stmt->execute();
-        $result_token = $stmt->get_result();
-
-        if ($result_token && $row = $result_token->fetch_assoc()) {
-            if (password_verify($token, $row['token'])) {
-                // Valid token, log the user in
-                $stmt = $conn->prepare("SELECT * FROM users WHERE user_id = ?");
-                $stmt->bind_param("i", $row['user_id']);
-                $stmt->execute();
-                $user_result = $stmt->get_result();
-
-                if ($user_result && $user = $user_result->fetch_assoc()) {
-                    $_SESSION['user_id'] = $user['user_id'];
-                    $_SESSION['full_name'] = $user['full_name'];
-                    $isLoggedIn = true;
-                }
-            }
-        }
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -531,11 +504,6 @@ if (!$isLoggedIn && isset($_COOKIE['remember'])) {
                                     </div>
                                 </li>
                                 <li>
-                                    <label>
-                                        <input type="checkbox" name="remember_me"> Remember me
-                                    </label>
-                                </li>
-                                <li>
                                     <button type="submit" class="btn">Log in</button>
                                 </li>
 
@@ -545,7 +513,6 @@ if (!$isLoggedIn && isset($_COOKIE['remember'])) {
                     <!-- Signup Form -->
                     <div id="signupForm" class="hidden">
                     <?php
-                    // Display signup error if it exists
                     if (isset($_SESSION['signup_error'])) {
                         echo '<div class="error-message" style="display: block; color: red; margin-bottom: 15px;">' . 
                             htmlspecialchars($_SESSION['signup_error']) . 
@@ -556,7 +523,6 @@ if (!$isLoggedIn && isset($_COOKIE['remember'])) {
                         <form action="signup.php" method="POST">
                             <input type="hidden" name="signup" value="1">
                             <?php
-                            // Add CSRF token to signup form too
                             if (!isset($csrf_token)) {
                                 $csrf_token = bin2hex(random_bytes(32));
                                 $_SESSION['csrf_token'] = $csrf_token;
