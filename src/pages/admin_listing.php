@@ -528,7 +528,7 @@ if ($update_empty) {
                             <td><?= htmlspecialchars($product['product_name']) ?></td>
                             <td class="description"><?= substr(htmlspecialchars($product['product_description'] ?? 'No description'), 0, 100) ?></td>
                             <td><?= htmlspecialchars($product['product_condition'] ?? 'N/A') ?></td>
-                            <td>$<?= number_format((float)($product['product_price'] ?? 0), 2) ?></td>
+                            <td>₱<?= number_format((float)($product['product_price'] ?? 0), 2) ?></td>
                             <td><?= displayStatus($product['product_status'], $product['is_flagged']) ?></td>
                             <td class="actions">
 
@@ -604,7 +604,7 @@ if ($update_empty) {
                             </td>
                             <td><?= htmlspecialchars($product['product_name']) ?></td>
                             <td><?= htmlspecialchars($product['product_condition'] ?? 'N/A') ?></td>
-                            <td>$<?= number_format((float)($product['product_price'] ?? 0), 2) ?></td>
+                            <td>₱<?= number_format((float)($product['product_price'] ?? 0), 2) ?></td>
                             <td><?= displayStatus($product['product_status'], $product['is_flagged']) ?></td>
                             <td class="actions">
 
@@ -673,7 +673,7 @@ if ($update_empty) {
                             </td>
                             <td><?= htmlspecialchars($product['product_name']) ?></td>
                             <td><?= htmlspecialchars($product['product_condition'] ?? 'N/A') ?></td>
-                            <td>$<?= number_format((float)($product['product_price'] ?? 0), 2) ?></td>
+                            <td>₱<?= number_format((float)($product['product_price'] ?? 0), 2) ?></td>
                             <td><?= displayStatus($product['product_status'], $product['is_flagged']) ?></td>
                             <td>
                                 <span class="rejection-reason" data-toggle="tooltip" title="Click to see admin notes">
